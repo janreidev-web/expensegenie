@@ -9,8 +9,6 @@
   <a href="https://expensegeniedev.vercel.app/" target="_blank">
     <img src="https://img.shields.io/website?label=Live%20Demo&style=for-the-badge&url=https%3A%2F%2Fexpensegenie.vercel.app%2F" alt="Live Demo"/>
   </a>
-  <img src="https://img.shields.io/github/license/your-username/expense-genie?style=for-the-badge" alt="License"/>
-  <img src="https://img.shields.io/github/last-commit/your-username/expense-genie?style=for-the-badge" alt="Last Commit"/>
   <img src="https://img.shields.io/badge/Made%20with-React-61DAFB?style=for-the-badge&logo=react" alt="Made with React"/>
 
 </div>
