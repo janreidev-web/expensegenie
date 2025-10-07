@@ -7,7 +7,7 @@
   </p>
   <br>
 
-  <a href="https://expensegenie.vercel.app/" target="_blank">
+  <a href="https://expensegeniedev.vercel.app/" target="_blank">
     <img src="https://img.shields.io/website?label=Live%20Demo&style=for-the-badge&url=https%3A%2F%2Fexpensegenie.vercel.app%2F" alt="Live Demo"/>
   </a>
   <img src="https://img.shields.io/github/license/your-username/expense-genie?style=for-the-badge" alt="License"/>
@@ -23,7 +23,7 @@ Expense Genie is a sleek, animation-rich expense tracker designed to give you a 
 <br>
 
 <div align="center">
-  <a href="https://expensegenie.vercel.app/">
+  <a href="https://expensegeniedev.vercel.app/">
     <img src="https://i.imgur.com/sPTtE5s.gif" alt="Expense Genie Demo" width="80%"/>
   </a>
 </div>
@@ -34,7 +34,7 @@ Expense Genie is a sleek, animation-rich expense tracker designed to give you a 
 
 Experience Expense Genie live in your browser. No installation required!
 
-👉 **[Try the App Live](https://expensegenie.vercel.app/)**
+👉 **[Try the App Live](https://expensegeniedev.vercel.app/)**
 
 ---
 
@@ -80,12 +80,12 @@ Make sure you have the following installed on your machine:
 
 1.  **Clone the repository:**
     ```bash
-    git clone [https://github.com/your-username/expense-genie.git](https://github.com/your-username/expense-genie.git)
+    git clone [https://github.com/janreidev-web/expensegenie.git](https://github.com/janreidev-web/expensegenie.git)
     ```
 
 2.  **Navigate to the project directory:**
     ```bash
-    cd expense-genie
+    cd expensegenie
     ```
 
 3.  **Install the dependencies:**
@@ -120,12 +120,7 @@ If you have a suggestion that would make this better, please fork the repo and c
 
 ---
 
-## 📄 License
-
-This project is distributed under the MIT License. See `LICENSE.txt` for more information.
-
----
 
 <p align="center">
-  Made with ❤️ by Your Name
+  Made with ❤️ by John Rey Layderos
 </p>
