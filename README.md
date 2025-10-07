@@ -1,6 +1,5 @@
 <br>
 <div align="center">
-  <img src="https://i.imgur.com/gYfAXsX.png" alt="Expense Genie Logo" width="150"/>
   <h1>💸 Expense Genie</h1>
   <p>
     <b>Your AI-assisted expense tracker that helps you manage money smarter, not harder.</b>
@@ -24,7 +23,6 @@ Expense Genie is a sleek, animation-rich expense tracker designed to give you a 
 
 <div align="center">
   <a href="https://expensegeniedev.vercel.app/">
-    <img src="https://i.imgur.com/sPTtE5s.gif" alt="Expense Genie Demo" width="80%"/>
   </a>
 </div>
 
