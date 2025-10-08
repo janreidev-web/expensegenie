@@ -1,66 +1,52 @@
-// src/components/Body/Body.jsx
 import { useEffect, useState } from "react";
 import Sidebar from "./Sidebar";
 import Dashboard from "./Dashboard/Dashboard";
 import Summary from "./Summary/Summary";
 import Trends from "./Trends/Trends";
-import OtherInfo from "./OtherInfo/OtherInfo";
+import Budgeting from "./Budgeting/Budgeting"; 
+
+// NEW: Import the icon for Budgeting
+import {
+  ChartPieIcon,
+  DocumentChartBarIcon,
+  PresentationChartLineIcon,
+  BanknotesIcon,
+} from '@heroicons/react/24/outline';
+
+// MODIFIED: The menuItems array is updated
+const menuItems = [
+  { name: "Dashboard", icon: ChartPieIcon, component: <Dashboard /> },
+  { name: "Summary", icon: DocumentChartBarIcon, component: <Summary /> },
+  { name: "Trends", icon: PresentationChartLineIcon, component: <Trends /> },
+  { name: "Budgeting", icon: BanknotesIcon, component: <Budgeting /> },
+];
+
+const CONTENT_MAP = menuItems.reduce((map, item) => {
+  map[item.name] = item.component;
+  return map;
+}, {});
 
 const Body = () => {
-  const menuItems = ["Dashboard", "Summary", "Trends", "Other Info"];
-  const [selectedItem, setSelectedItem] = useState(menuItems[0]);
+  const [selectedItem, setSelectedItem] = useState(menuItems[0].name);
   const [username, setUsername] = useState("");
-  const [showForm, setShowForm] = useState(false);
-  const [expenseForm, setExpenseForm] = useState({
-    category: "",
-    amount: "",
-    description: "",
-    date: "",
-  });
 
   useEffect(() => {
     const storedUsername = localStorage.getItem("username") || "User";
     setUsername(storedUsername);
   }, []);
 
-  const renderContent = () => {
-    switch (selectedItem) {
-      case "Dashboard":
-        return (
-          <Dashboard
-            showForm={showForm}
-            setShowForm={setShowForm}
-            expenseForm={expenseForm}
-            setExpenseForm={setExpenseForm}
-          />
-        );
-      case "Summary":
-        return <Summary />;
-      case "Trends":
-        return <Trends />;
-      case "Other Info":
-        return <OtherInfo />;
-      default:
-        return null;
-    }
-  };
-
   return (
-    <main className="flex flex-col min-h-screen bg-slate-50 pt-12">
-      <div className="flex flex-col md:flex-row flex-1">
-        {/* Sidebar */}
-        <Sidebar
-          username={username}
-          menuItems={menuItems}
-          selectedItem={selectedItem}
-          setSelectedItem={setSelectedItem}
-          setShowForm={setShowForm}
-        />
-
-        {/* Main Content */}
-        <div className="flex-1 p-6">{renderContent()}</div>
+    <div className="flex flex-col md:flex-row flex-1 h-full bg-slate-50">
+      <Sidebar
+        username={username}
+        menuItems={menuItems}
+        selectedItem={selectedItem}
+        setSelectedItem={setSelectedItem}
+      />
+      <div className="flex-1 p-6 overflow-y-auto">
+        {CONTENT_MAP[selectedItem]}
       </div>
-    </main>
+    </div>
   );
 };
 
