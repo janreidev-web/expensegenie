@@ -14,7 +14,7 @@ const categoryColors = {
   'Personal Needs': 'bg-gray-100 text-gray-800',
   Other: 'bg-gray-100 text-gray-800',
 };
-const categories = Object.keys(categoryColors); // Get categories for the edit form
+const categories = Object.keys(categoryColors);
 const itemsPerPage = 5;
 
 const ExpenseList = ({ expenses, loading, onAction }) => {
@@ -49,13 +49,16 @@ const ExpenseList = ({ expenses, loading, onAction }) => {
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify(updatedExpense),
       });
-      if (!res.ok) throw new Error('Server error');
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || 'Server error');
+      };
       toast.success('Expense updated!');
       setSelectedExpense(null);
       if (onAction) onAction();
     } catch (e) {
       console.error(e);
-      toast.error('Failed to update expense.');
+      toast.error(`Failed to update expense: ${e.message}`);
     }
   };
 
@@ -66,11 +69,8 @@ const ExpenseList = ({ expenses, loading, onAction }) => {
     }));
   };
 
-  // --- FIX: The logic for filtering and sorting is now fully implemented ---
   const filteredSorted = useMemo(() => {
-    // Ensure expenses is an array before processing
     let list = Array.isArray(expenses) ? [...expenses] : [];
-
     if (searchTerm) {
       const term = searchTerm.trim().toLowerCase();
       list = list.filter(
@@ -79,7 +79,6 @@ const ExpenseList = ({ expenses, loading, onAction }) => {
           (e.description || '').toLowerCase().includes(term)
       );
     }
-
     if (sortConfig.key) {
       const { key, direction } = sortConfig;
       const dir = direction === 'asc' ? 1 : -1;
@@ -101,13 +100,12 @@ const ExpenseList = ({ expenses, loading, onAction }) => {
         return 0;
       });
     }
-    return list; // This return statement is crucial
+    return list;
   }, [expenses, searchTerm, sortConfig]);
   
   const totalPages = Math.ceil(filteredSorted.length / itemsPerPage) || 1;
   const currentExpenses = filteredSorted.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
-  // --- Edit form sub-component (Restored from your original code) ---
   const EditExpenseForm = ({ expense }) => {
     const [formData, setFormData] = useState({
       id: expense._id,
@@ -118,7 +116,9 @@ const ExpenseList = ({ expenses, loading, onAction }) => {
     });
 
     const handleChange = (e) => {
-      setFormData((prev) => ({ ...prev, [name]: e.target.value }));
+      // FIX 1: Destructure name and value from the event target
+      const { name, value } = e.target;
+      setFormData((prev) => ({ ...prev, [name]: value }));
     };
 
     const handleSubmit = (e) => {
@@ -134,45 +134,40 @@ const ExpenseList = ({ expenses, loading, onAction }) => {
       <>
         <div className="fixed inset-0 bg-black bg-opacity-30 z-40" onClick={() => setSelectedExpense(null)} />
         <form onSubmit={handleSubmit} className="fixed z-50 top-1/2 left-1/2 max-w-md w-full bg-white rounded-lg shadow-lg p-6 transform -translate-x-1/2 -translate-y-1/2">
-          {/* ... (form JSX is the same as your original) ... */}
-           <h2 className="text-xl font-semibold mb-4">Edit Expense</h2>
-           <label className="block mb-2">Category:
-             <select name="category" value={formData.category} onChange={handleChange} required className="w-full border rounded px-3 py-2 mt-1">
-               {categories.map((cat) => (<option key={cat} value={cat}>{cat}</option>))}
-             </select>
-           </label>
-           <label className="block mb-2">Amount:
-             <input type="number" name="amount" value={formData.amount} onChange={handleChange} step="0.01" min="0" required className="w-full border rounded px-3 py-2 mt-1" />
-           </label>
-           <label className="block mb-2">Description:
-             <input type="text" name="description" value={formData.description} onChange={handleChange} className="w-full border rounded px-3 py-2 mt-1" />
-           </label>
-           <label className="block mb-4">Date:
-             <input type="date" name="date" value={formData.date} onChange={handleChange} required className="w-full border rounded px-3 py-2 mt-1" />
-           </label>
-           <div className="flex justify-end space-x-2">
-             <button type="button" onClick={() => setSelectedExpense(null)} className="px-4 py-2 rounded bg-gray-300 hover:bg-gray-400">Cancel</button>
-             <button type="submit" className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700">Save</button>
-           </div>
+          <h2 className="text-xl font-semibold mb-4">Edit Expense</h2>
+          <label className="block mb-2">Category:
+            <select name="category" value={formData.category} onChange={handleChange} required className="w-full border rounded px-3 py-2 mt-1">
+              {categories.map((cat) => (<option key={cat} value={cat}>{cat}</option>))}
+            </select>
+          </label>
+          <label className="block mb-2">Amount:
+            <input type="number" name="amount" value={formData.amount} onChange={handleChange} step="0.01" min="0" required className="w-full border rounded px-3 py-2 mt-1" />
+          </label>
+          <label className="block mb-2">Description:
+            <input type="text" name="description" value={formData.description} onChange={handleChange} className="w-full border rounded px-3 py-2 mt-1" />
+          </label>
+          <label className="block mb-4">Date:
+            <input type="date" name="date" value={formData.date} onChange={handleChange} required className="w-full border rounded px-3 py-2 mt-1" />
+          </label>
+          <div className="flex justify-end space-x-2">
+            <button type="button" onClick={() => setSelectedExpense(null)} className="px-4 py-2 rounded bg-gray-300 hover:bg-gray-400">Cancel</button>
+            <button type="submit" className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700">Save</button>
+          </div>
         </form>
       </>
     );
   };
   
   return (
-     <div className="w-full">
+    <div className="w-full">
       <h4 className="text-xl font-semibold text-slate-700 mb-4">Recent Expenses</h4>
       <input
         type="text"
         placeholder="Search expenses..."
         value={searchTerm}
-        onChange={(e) => {
-          setSearchTerm(e.target.value);
-          setCurrentPage(1);
-        }}
+        onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
         className="w-full mb-4 p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
       />
-
       {loading ? (
         <div className="text-center py-8">Loading...</div>
       ) : (
@@ -192,9 +187,7 @@ const ExpenseList = ({ expenses, loading, onAction }) => {
                   currentExpenses.map((expense) => (
                     <tr key={expense._id} className="hover:bg-gray-50">
                       <td className="py-3 px-4">
-                        <span className={`px-2 py-1 text-xs font-semibold rounded-full ${categoryColors[expense.category] || categoryColors.Other}`}>
-                          {expense.category}
-                        </span>
+                        <span className={`px-2 py-1 text-xs font-semibold rounded-full ${categoryColors[expense.category] || categoryColors.Other}`}>{expense.category}</span>
                       </td>
                       <td className="py-3 px-4 text-right font-mono">{new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP' }).format(expense.amount)}</td>
                       <td className="py-3 px-4 text-gray-600">{new Date(expense.date).toLocaleDateString('en-CA')}</td>
@@ -212,7 +205,29 @@ const ExpenseList = ({ expenses, loading, onAction }) => {
               </tbody>
             </table>
           </div>
-          {/* ... (Pagination JSX can stay the same) ... */}
+          
+          {/* FIX 2: Added the pagination controls */}
+          {totalPages > 1 && (
+            <div className="flex justify-center items-center gap-4 mt-4">
+                <button
+                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+                className="px-4 py-2 rounded-md border bg-white font-semibold hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                Previous
+                </button>
+                <span className="text-gray-700 font-medium">
+                Page {currentPage} of {totalPages}
+                </span>
+                <button
+                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                disabled={currentPage === totalPages}
+                className="px-4 py-2 rounded-md border bg-white font-semibold hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                Next
+                </button>
+            </div>
+          )}
         </>
       )}
 
