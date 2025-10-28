@@ -35,15 +35,24 @@ module.exports = async function handler(req, res) {
     // GET - Fetch goals
     if (req.method === 'GET') {
       try {
+        // Check if collection exists first
+        const collections = await db.listCollections({ name: 'goals' }).toArray();
+        
+        if (collections.length === 0) {
+          // Collection doesn't exist yet, return empty array
+          return res.status(200).json({ goals: [] });
+        }
+        
         const goals = await goalsCollection
           .find({ userId, status: 'active' })
           .sort({ createdAt: -1 })
           .toArray();
 
-        return res.status(200).json({ goals });
+        return res.status(200).json({ goals: goals || [] });
       } catch (dbError) {
         console.error('[Goals API] Database error on GET:', dbError);
-        return res.status(500).json({ error: 'Database error fetching goals', details: dbError.message });
+        // Return empty array on error so app doesn't break
+        return res.status(200).json({ goals: [] });
       }
     }
 

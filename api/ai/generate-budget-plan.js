@@ -136,16 +136,22 @@ export default async function handler(req, res) {
 async function searchItemPricing(itemName) {
   const prompt = `What is the approximate current market price in Philippine Pesos (PHP/₱) for: "${itemName}"?
 
-Please provide:
-1. The estimated price in PHP
-2. A brief source note (e.g., "Based on typical retail prices" or "Average online price")
+IMPORTANT: You must provide a realistic numeric price based on current market prices in the Philippines.
 
-Respond ONLY with valid JSON in this exact format:
+Example for "iPhone 15 Pro":
+{
+  "itemName": "iPhone 15 Pro",
+  "price": 65990,
+  "source": "Based on typical Philippine retail prices",
+  "notes": "128GB base model"
+}
+
+Now provide the pricing for "${itemName}" in this EXACT JSON format (numbers only, no commas or currency symbols):
 {
   "itemName": "${itemName}",
-  "price": <number>,
-  "source": "source description",
-  "notes": "optional additional notes"
+  "price": <numeric_value_only>,
+  "source": "brief source description",
+  "notes": "optional notes"
 }`;
 
   // Try Gemini first (free tier available)
