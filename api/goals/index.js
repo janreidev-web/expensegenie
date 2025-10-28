@@ -13,6 +13,47 @@ module.exports = async function handler(req, res) {
     return res.status(200).end();
   }
 
+  // For GET requests, always return successfully even if there's an error
+  if (req.method === 'GET') {
+    try {
+      const authHeader = req.headers.authorization;
+      if (!authHeader) {
+        return res.status(200).json({ goals: [] });
+      }
+
+      const token = authHeader.split(' ')[1];
+      if (!uri) {
+        console.error('[Goals API] MONGODB_URI not configured');
+        return res.status(200).json({ goals: [] });
+      }
+
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      const userId = decoded.userId;
+
+      if (!userId) {
+        return res.status(200).json({ goals: [] });
+      }
+
+      const client = new MongoClient(uri);
+      await client.connect();
+
+      const db = client.db('expensetracker');
+      const goalsCollection = db.collection('goals');
+
+      const goals = await goalsCollection
+        .find({ userId, status: 'active' })
+        .sort({ createdAt: -1 })
+        .toArray();
+
+      await client.close();
+      return res.status(200).json({ goals: goals || [] });
+    } catch (error) {
+      console.error('[Goals API] GET error:', error);
+      return res.status(200).json({ goals: [] });
+    }
+  }
+
+  // For POST requests, use normal error handling
   const authHeader = req.headers.authorization;
   if (!authHeader) {
     return res.status(401).json({ error: 'Missing authorization header' });
@@ -23,38 +64,25 @@ module.exports = async function handler(req, res) {
   let client;
   
   try {
+    // Verify MongoDB URI is configured
+    if (!uri) {
+      console.error('[Goals API] MONGODB_URI not configured');
+      return res.status(500).json({ error: 'Database configuration error' });
+    }
+
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const userId = decoded.userId;
+
+    if (!userId) {
+      console.error('[Goals API] userId not found in token');
+      return res.status(401).json({ error: 'Invalid token: missing userId' });
+    }
 
     client = new MongoClient(uri);
     await client.connect();
 
     const db = client.db('expensetracker');
     const goalsCollection = db.collection('goals');
-
-    // GET - Fetch goals
-    if (req.method === 'GET') {
-      try {
-        // Check if collection exists first
-        const collections = await db.listCollections({ name: 'goals' }).toArray();
-        
-        if (collections.length === 0) {
-          // Collection doesn't exist yet, return empty array
-          return res.status(200).json({ goals: [] });
-        }
-        
-        const goals = await goalsCollection
-          .find({ userId, status: 'active' })
-          .sort({ createdAt: -1 })
-          .toArray();
-
-        return res.status(200).json({ goals: goals || [] });
-      } catch (dbError) {
-        console.error('[Goals API] Database error on GET:', dbError);
-        // Return empty array on error so app doesn't break
-        return res.status(200).json({ goals: [] });
-      }
-    }
 
     // POST - Save goal
     if (req.method === 'POST') {
