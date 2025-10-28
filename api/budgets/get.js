@@ -1,8 +1,8 @@
-const connectToDatabase = require('../../utils/db.js');
-const Budget = require('../../models/Budget.js');
-const jwt = require('jsonwebtoken');
+import connectToDatabase from '../../utils/db.js';
+import Budget from '../../models/Budget.js';
+import jwt from 'jsonwebtoken';
 
-module.exports = async function handler(req, res) {
+export default async function handler(req, res) {
   // Enable CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
