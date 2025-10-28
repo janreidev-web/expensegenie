@@ -234,8 +234,7 @@ const SavingsGoalModal = ({ expenses, budgets, onClose }) => {
                 <div className="flex-1">
                   <span className="font-semibold text-purple-900">🔍 Search for current pricing automatically</span>
                   <p className="text-xs text-purple-700">AI will find the latest market price for you</p>
-                  <p className="text-xs text-purple-600 mt-1 italic">Note: Requires OpenAI API key for automatic pricing</p>
-                </div>
+              </div>
               </label>
             </div>
             
