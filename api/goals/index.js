@@ -20,11 +20,13 @@ module.exports = async function handler(req, res) {
 
   const token = authHeader.split(' ')[1];
 
+  let client;
+  
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const userId = decoded.userId;
 
-    const client = new MongoClient(uri);
+    client = new MongoClient(uri);
     await client.connect();
 
     const db = client.db('expensetracker');
@@ -32,47 +34,61 @@ module.exports = async function handler(req, res) {
 
     // GET - Fetch goals
     if (req.method === 'GET') {
-      const goals = await goalsCollection
-        .find({ userId, status: 'active' })
-        .sort({ createdAt: -1 })
-        .toArray();
+      try {
+        const goals = await goalsCollection
+          .find({ userId, status: 'active' })
+          .sort({ createdAt: -1 })
+          .toArray();
 
-      await client.close();
-      return res.status(200).json({ goals });
+        return res.status(200).json({ goals });
+      } catch (dbError) {
+        console.error('[Goals API] Database error on GET:', dbError);
+        return res.status(500).json({ error: 'Database error fetching goals', details: dbError.message });
+      }
     }
 
     // POST - Save goal
     if (req.method === 'POST') {
-      const { goalName, goalAmount, months, plan, pricingInfo } = req.body;
+      try {
+        const { goalName, goalAmount, months, plan, pricingInfo } = req.body;
 
-      const newGoal = {
-        userId,
-        goalName,
-        goalAmount,
-        months,
-        targetDate: new Date(Date.now() + months * 30 * 24 * 60 * 60 * 1000),
-        currentSavings: 0,
-        plan: plan,
-        pricingInfo: pricingInfo || null,
-        status: 'active',
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
+        const newGoal = {
+          userId,
+          goalName,
+          goalAmount,
+          months,
+          targetDate: new Date(Date.now() + months * 30 * 24 * 60 * 60 * 1000),
+          currentSavings: 0,
+          plan: plan,
+          pricingInfo: pricingInfo || null,
+          status: 'active',
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        };
 
-      await goalsCollection.insertOne(newGoal);
-      await client.close();
-
-      return res.status(200).json({ message: 'Goal saved successfully', goal: newGoal });
+        await goalsCollection.insertOne(newGoal);
+        return res.status(200).json({ message: 'Goal saved successfully', goal: newGoal });
+      } catch (dbError) {
+        console.error('[Goals API] Database error on POST:', dbError);
+        return res.status(500).json({ error: 'Database error saving goal', details: dbError.message });
+      }
     }
 
-    await client.close();
     return res.status(405).json({ error: 'Method not allowed' });
 
   } catch (error) {
-    console.error('[Goals API] Error:', error.message);
+    console.error('[Goals API] Error:', error.message, error.stack);
     if (error.name === 'JsonWebTokenError') {
       return res.status(401).json({ error: 'Unauthorized: Invalid token' });
     }
-    return res.status(500).json({ error: 'Server error' });
+    return res.status(500).json({ error: 'Server error', details: error.message });
+  } finally {
+    if (client) {
+      try {
+        await client.close();
+      } catch (closeError) {
+        console.error('[Goals API] Error closing connection:', closeError);
+      }
+    }
   }
 }

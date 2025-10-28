@@ -415,7 +415,18 @@ const Budgeting = () => {
 
         const budgetData = await budgetRes.json();
         const expenseData = await expenseRes.json();
-        const goalsData = await goalsRes.json();
+        
+        // Handle goals fetch gracefully
+        let goalsData = { goals: [] };
+        try {
+          if (goalsRes.ok) {
+            goalsData = await goalsRes.json();
+          } else {
+            console.error('[Goals] Failed to fetch:', goalsRes.status);
+          }
+        } catch (goalsError) {
+          console.error('[Goals] Error parsing response:', goalsError);
+        }
 
         setBudgets(budgetData.budgets || {});
         setExpenses(expenseData.expenses || []);
