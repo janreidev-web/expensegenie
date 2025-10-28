@@ -487,10 +487,12 @@ const Budgeting = () => {
         setShowEditBudget(false);
         toast.success("Budgets updated successfully!");
       } else {
-        toast.error("Failed to update budgets");
+        const errorData = await res.json();
+        console.error("[Budget Update] Error response:", errorData);
+        toast.error(errorData.details || errorData.error || "Failed to update budgets");
       }
     } catch (err) {
-      console.error(err);
+      console.error("[Budget Update] Exception:", err);
       toast.error("Error updating budgets");
     }
   };

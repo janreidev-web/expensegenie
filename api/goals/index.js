@@ -28,7 +28,7 @@ module.exports = async function handler(req, res) {
       }
 
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      const userId = decoded.userId;
+      const userId = decoded.id;
 
       if (!userId) {
         return res.status(200).json({ goals: [] });
@@ -71,7 +71,7 @@ module.exports = async function handler(req, res) {
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const userId = decoded.userId;
+    const userId = decoded.id;
 
     if (!userId) {
       console.error('[Goals API] userId not found in token');
