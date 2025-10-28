@@ -1,13 +1,5 @@
 // src/components/Body/Sidebar.jsx
-import { ArrowLeftOnRectangleIcon } from '@heroicons/react/24/outline';
-
 const Sidebar = ({ username, menuItems, selectedItem, setSelectedItem }) => {
-  // A simple placeholder for a logout function
-  const handleLogout = () => {
-    console.log("Logging out...");
-    // Here you would typically clear localStorage/session and redirect
-  };
-  
   return (
     <aside className="w-full md:w-64 bg-white shadow-md flex flex-col">
       {/* Profile Section */}
@@ -24,7 +16,6 @@ const Sidebar = ({ username, menuItems, selectedItem, setSelectedItem }) => {
       <nav className="flex-1 px-4 py-4">
         <ul className="space-y-2">
           {menuItems.map((item) => {
-            // NEW: Destructure name and Icon component from the item object
             const { name, icon: Icon } = item;
             const isSelected = selectedItem === name;
 
@@ -36,14 +27,12 @@ const Sidebar = ({ username, menuItems, selectedItem, setSelectedItem }) => {
                     e.preventDefault();
                     setSelectedItem(name);
                   }}
-                  // MODIFIED: Cleaner styling with a left border for the active item
                   className={`flex items-center gap-3 rounded-md px-3 py-2 transition-colors ${
                     isSelected
                       ? "bg-blue-50 text-blue-600 font-bold border-l-4 border-blue-600"
                       : "text-slate-600 hover:bg-slate-100"
                   }`}
                 >
-                  {/* NEW: Render the icon */}
                   <Icon className="h-6 w-6" />
                   <span>{name}</span>
                 </a>
@@ -52,17 +41,6 @@ const Sidebar = ({ username, menuItems, selectedItem, setSelectedItem }) => {
           })}
         </ul>
       </nav>
-
-      {/* Logout Section */}
-      <div className="p-4 mt-auto border-t border-slate-200">
-        <button
-          onClick={handleLogout}
-          className="w-full flex items-center justify-center gap-3 rounded-md px-3 py-2 transition-colors text-slate-600 hover:bg-red-50 hover:text-red-600"
-        >
-          <ArrowLeftOnRectangleIcon className="h-6 w-6" />
-          <span>Logout</span>
-        </button>
-      </div>
     </aside>
   );
 };

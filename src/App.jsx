@@ -9,6 +9,8 @@ import Signup from "./pages/user_creds/Signup";
 import Login from "./pages/user_creds/Login";
 import VerifyEmail from "./pages/user_creds/VerifyEmail";
 import ResendVerification from "./pages/user_creds/ResendVerification";
+import ForgotPassword from "./pages/user_creds/ForgotPassword";
+import ResetPassword from "./pages/user_creds/ResetPassword";
 import TermsAndConditions from "./pages/TermsAndConditions";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import Home from "./Home";
@@ -24,6 +26,8 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/verify-email" element={<VerifyEmail />} />
         <Route path="/resend-verification" element={<ResendVerification />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/terms" element={<TermsAndConditions />} />
         <Route path="/privacy" element={<PrivacyPolicy />} />
         <Route path="/features" element={<Features />} />

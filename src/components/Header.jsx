@@ -102,7 +102,6 @@ const Header = () => {
                                         <p className="text-sm text-gray-500">Signed in as</p>
                                         <p className="font-semibold truncate">{username}</p>
                                     </div>
-                                    <Link to="/dashboard" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" onClick={() => setIsDropdownOpen(false)}>Dashboard</Link>
                                     <button onClick={handleLogout} className="w-full text-left block px-4 py-2 text-sm text-red-600 hover:bg-gray-100" disabled={isLoggingOut}>
                                         {isLoggingOut ? "Signing out..." : "Sign out"}
                                     </button>
@@ -145,7 +144,6 @@ const Header = () => {
                          {isLoggedIn ? (
                             <div className="flex flex-col items-center gap-4">
                                 <p className="font-semibold text-lg">{username}</p>
-                                <Link to="/dashboard" className="w-full max-w-xs px-4 py-3 rounded-md font-semibold bg-gray-200" onClick={() => setIsMobileMenuOpen(false)}>Dashboard</Link>
                                 <button onClick={handleLogout} className="w-full max-w-xs px-4 py-3 rounded-md font-semibold bg-red-500 text-white" disabled={isLoggingOut}>
                                     {isLoggingOut ? "Signing out..." : "Sign out"}
                                 </button>
