@@ -69,7 +69,7 @@ const Signup = () => {
     setIsLoading(true);
 
     try {
-      const res = await fetch("/api/signup", {
+      const res = await fetch("/api/auth?action=signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, email, password }),

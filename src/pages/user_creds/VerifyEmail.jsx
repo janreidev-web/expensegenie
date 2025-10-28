@@ -96,7 +96,7 @@ const VerifyEmail = () => {
     setError('');
 
     try {
-      const res = await fetch('/api/verify-email', {
+      const res = await fetch('/api/auth?action=verify-email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ code: verificationCode }),
@@ -132,7 +132,7 @@ const VerifyEmail = () => {
     setCode(['', '', '', '', '', '']);
 
     try {
-      const res = await fetch('/api/resend-verification', {
+      const res = await fetch('/api/auth?action=resend-verification', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email }),
