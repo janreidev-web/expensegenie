@@ -24,20 +24,18 @@ export default async function handler(req, res) {
 
     const user = await User.findOne({ email });
     if (!user) {
-      console.error(`Login failed: User with email ${email} not found.`);
       return res.status(401).json({ error: 'Invalid email or password' });
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      console.error(`Login failed: Incorrect password for email ${email}.`);
       return res.status(401).json({ error: 'Invalid email or password' });
     }
 
     // Check if email is verified
     if (!user.isEmailVerified) {
       return res.status(403).json({ 
-        error: 'Please verify your email address before logging in. Check your inbox for the verification link.',
+        error: 'Please verify your email address before logging in. Check your inbox for the 6-digit verification code.',
         emailNotVerified: true,
         email: user.email,
       });
@@ -59,7 +57,7 @@ export default async function handler(req, res) {
       email: user.email,
     });
   } catch (error) {
-    console.error("Login handler error:", error);
-    return res.status(500).json({ error: 'Server error' });
+    console.error('[Login] Error:', error.message);
+    return res.status(500).json({ error: 'Server error during login' });
   }
 }

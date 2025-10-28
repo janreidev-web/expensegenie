@@ -8,6 +8,8 @@ const userSchema = new mongoose.Schema(
     isEmailVerified: { type: Boolean, default: false },
     verificationToken: { type: String },
     verificationTokenExpires: { type: Date },
+    verificationCode: { type: String },
+    verificationCodeExpires: { type: Date },
   },
   { timestamps: true }
 );
@@ -15,6 +17,8 @@ const userSchema = new mongoose.Schema(
 userSchema.methods.toJSON = function () {
   const userObject = this.toObject();
   delete userObject.password;
+  delete userObject.verificationToken;
+  delete userObject.verificationCode;
   return userObject;
 };
 

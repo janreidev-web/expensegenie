@@ -133,13 +133,115 @@ export const sendVerificationEmail = async (email, username, verificationToken) 
     };
     
     const info = await transporter.sendMail(mailOptions);
-    
-    console.log('Verification email sent successfully:', info.messageId);
-    console.log('Preview URL (for development):', nodemailer.getTestMessageUrl(info));
+    console.log('[Email] Verification email sent:', info.messageId);
     
     return { success: true, messageId: info.messageId };
   } catch (error) {
-    console.error('Error sending verification email:', error);
+    console.error('[Email] Failed to send verification email:', error.message);
+    return { success: false, error: error.message };
+  }
+};
+
+// Send verification code email
+export const sendVerificationCodeEmail = async (email, username, verificationCode) => {
+  try {
+    const transporter = createTransporter();
+    
+    const mailOptions = {
+      from: `"ExpenseGenie" <${process.env.EMAIL_FROM || 'noreply@expensegenie.com'}>`,
+      to: email,
+      subject: 'Verify Your Email Address - ExpenseGenie',
+      html: `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Verify Your Email</title>
+        </head>
+        <body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f4f4f4;">
+          <table role="presentation" style="width: 100%; border-collapse: collapse;">
+            <tr>
+              <td align="center" style="padding: 40px 0;">
+                <table role="presentation" style="width: 600px; border-collapse: collapse; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                  <!-- Header -->
+                  <tr>
+                    <td style="padding: 40px 30px; text-align: center; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 8px 8px 0 0;">
+                      <h1 style="margin: 0; color: #ffffff; font-size: 28px;">Welcome to ExpenseGenie!</h1>
+                    </td>
+                  </tr>
+                  
+                  <!-- Content -->
+                  <tr>
+                    <td style="padding: 40px 30px;">
+                      <p style="margin: 0 0 20px; color: #333333; font-size: 16px; line-height: 1.5;">
+                        Hi <strong>${username}</strong>,
+                      </p>
+                      <p style="margin: 0 0 20px; color: #666666; font-size: 16px; line-height: 1.5;">
+                        Thank you for signing up! We're excited to have you on board. To verify your email address, please use the verification code below:
+                      </p>
+                      
+                      <!-- Verification Code -->
+                      <table role="presentation" style="margin: 30px auto; width: 100%;">
+                        <tr>
+                          <td align="center">
+                            <div style="background-color: #f8f9fa; border: 2px dashed #667eea; border-radius: 8px; padding: 20px; display: inline-block;">
+                              <p style="margin: 0 0 10px; color: #666666; font-size: 14px; text-transform: uppercase; letter-spacing: 1px;">Verification Code</p>
+                              <p style="margin: 0; color: #667eea; font-size: 36px; font-weight: bold; letter-spacing: 8px; font-family: 'Courier New', monospace;">
+                                ${verificationCode}
+                              </p>
+                            </div>
+                          </td>
+                        </tr>
+                      </table>
+                      
+                      <p style="margin: 20px 0 0; color: #999999; font-size: 14px; line-height: 1.5;">
+                        This code will expire in 15 minutes. If you didn't create an account with ExpenseGenie, please ignore this email.
+                      </p>
+                      
+                      <p style="margin: 20px 0 0; color: #999999; font-size: 14px; line-height: 1.5;">
+                        For security reasons, never share this code with anyone.
+                      </p>
+                    </td>
+                  </tr>
+                  
+                  <!-- Footer -->
+                  <tr>
+                    <td style="padding: 30px; text-align: center; background-color: #f8f8f8; border-radius: 0 0 8px 8px;">
+                      <p style="margin: 0; color: #999999; font-size: 12px;">
+                        © ${new Date().getFullYear()} ExpenseGenie. All rights reserved.
+                      </p>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+          </table>
+        </body>
+        </html>
+      `,
+      text: `
+        Hi ${username},
+        
+        Thank you for signing up for ExpenseGenie! 
+        
+        Your verification code is: ${verificationCode}
+        
+        This code will expire in 15 minutes.
+        
+        If you didn't create an account with ExpenseGenie, please ignore this email.
+        
+        Best regards,
+        The ExpenseGenie Team
+      `,
+    };
+    
+    const info = await transporter.sendMail(mailOptions);
+    console.log('[Email] Verification code sent:', info.messageId);
+    
+    return { success: true, messageId: info.messageId };
+  } catch (error) {
+    console.error('[Email] Failed to send verification code:', error.message);
     return { success: false, error: error.message };
   }
 };
@@ -185,11 +287,11 @@ export const sendPasswordResetEmail = async (email, username, resetToken) => {
     };
     
     const info = await transporter.sendMail(mailOptions);
-    console.log('Password reset email sent:', info.messageId);
+    console.log('[Email] Password reset email sent:', info.messageId);
     
     return { success: true, messageId: info.messageId };
   } catch (error) {
-    console.error('Error sending password reset email:', error);
+    console.error('[Email] Failed to send password reset email:', error.message);
     return { success: false, error: error.message };
   }
 };

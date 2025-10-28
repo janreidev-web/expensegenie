@@ -78,15 +78,15 @@ const Signup = () => {
       const data = await res.json();
 
       if (res.ok) {
-        toast.success("Account created! Please check your email to verify your account.", {
+        toast.success("Account created! Please check your email for the verification code.", {
           duration: 5000,
         });
-        setTimeout(() => navigate("/login"), 2000);
+        // Redirect to verification page with email
+        setTimeout(() => navigate(`/verify-email?email=${encodeURIComponent(email)}`), 2000);
       } else {
         toast.error(data.error || "Signup failed.");
       }
     } catch (err) {
-      console.error(err);
       toast.error("Something went wrong. Please try again.");
     } finally {
       setIsLoading(false);

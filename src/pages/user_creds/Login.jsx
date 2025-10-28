@@ -37,7 +37,6 @@ const Login = () => {
       try {
         data = JSON.parse(text);
       } catch {
-        console.error('Invalid JSON response:', text);
         toast.error("Server returned an invalid response");
         setIsLoading(false);
         return;
@@ -56,20 +55,16 @@ const Login = () => {
       } else {
         // Check if email is not verified
         if (data.emailNotVerified) {
-          toast.error(data.error, { duration: 5000 });
-          // Show option to resend verification
+          toast.error(data.error, { duration: 4000 });
+          // Redirect to verification page
           setTimeout(() => {
-            const shouldResend = window.confirm("Would you like to resend the verification email?");
-            if (shouldResend) {
-              navigate("/resend-verification", { state: { email: data.email } });
-            }
-          }, 1500);
+            navigate(`/verify-email?email=${encodeURIComponent(data.email)}`);
+          }, 2000);
         } else {
           toast.error(data.error || "Invalid credentials");
         }
       }
     } catch (err) {
-      console.error("Login fetch error:", err);
       toast.error("Something went wrong. Please try again.");
     } finally {
       setIsLoading(false);

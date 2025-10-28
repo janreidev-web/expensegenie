@@ -5,7 +5,8 @@ import connectToDatabase from '../utils/db.js';
 import User from '../models/User.js';
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
-import { sendVerificationEmail } from '../utils/emailService.js';
+import { sendVerificationEmail, sendVerificationCodeEmail } from '../utils/emailService.js';
+import { generateVerificationCode, getCodeExpiry } from '../utils/codeGenerator.js';
 
 const cors = initMiddleware(
   Cors({
@@ -27,6 +28,22 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Missing required fields' });
   }
 
+  // Validate email format
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    return res.status(400).json({ error: 'Invalid email format' });
+  }
+
+  // Validate password strength
+  if (password.length < 6) {
+    return res.status(400).json({ error: 'Password must be at least 6 characters' });
+  }
+
+  // Validate username
+  if (username.length < 3) {
+    return res.status(400).json({ error: 'Username must be at least 3 characters' });
+  }
+
   try {
     await connectToDatabase();
 
@@ -37,7 +54,11 @@ export default async function handler(req, res) {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Generate verification token
+    // Generate verification code (6-digit)
+    const verificationCode = generateVerificationCode();
+    const verificationCodeExpires = getCodeExpiry(); // 15 minutes
+
+    // Also keep token for backward compatibility (optional)
     const verificationToken = crypto.randomBytes(32).toString('hex');
     const verificationTokenExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
 
@@ -48,15 +69,15 @@ export default async function handler(req, res) {
       isEmailVerified: false,
       verificationToken,
       verificationTokenExpires,
+      verificationCode,
+      verificationCodeExpires,
     });
 
-    // Send verification email
-    const emailResult = await sendVerificationEmail(email, username, verificationToken);
+    // Send verification code email
+    const emailResult = await sendVerificationCodeEmail(email, username, verificationCode);
     
     if (!emailResult.success) {
-      console.error('Failed to send verification email:', emailResult.error);
-      // Note: We don't fail the signup if email fails to send
-      // The user can request a new verification email later
+      console.error('[Signup] Failed to send verification email:', emailResult.error);
     }
 
     return res.status(201).json({
@@ -66,7 +87,7 @@ export default async function handler(req, res) {
       message: 'Account created successfully. Please check your email to verify your account.',
     });
   } catch (error) {
-    console.error(error);
-    return res.status(500).json({ error: 'Server error' });
+    console.error('[Signup] Error:', error.message);
+    return res.status(500).json({ error: 'Server error during signup' });
   }
 }

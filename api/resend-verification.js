@@ -4,7 +4,8 @@ import initMiddleware from '../utils/init-middleware.js';
 import connectToDatabase from '../utils/db.js';
 import User from '../models/User.js';
 import crypto from 'crypto';
-import { sendVerificationEmail } from '../utils/emailService.js';
+import { sendVerificationEmail, sendVerificationCodeEmail } from '../utils/emailService.js';
+import { generateVerificationCode, getCodeExpiry } from '../utils/codeGenerator.js';
 
 const cors = initMiddleware(
   Cors({
@@ -26,6 +27,12 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Email is required' });
   }
 
+  // Basic email validation
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    return res.status(400).json({ error: 'Invalid email format' });
+  }
+
   try {
     await connectToDatabase();
 
@@ -44,19 +51,25 @@ export default async function handler(req, res) {
       });
     }
 
-    // Generate new verification token
+    // Generate new verification code (6-digit)
+    const verificationCode = generateVerificationCode();
+    const verificationCodeExpires = getCodeExpiry(); // 15 minutes
+
+    // Also update token for backward compatibility
     const verificationToken = crypto.randomBytes(32).toString('hex');
     const verificationTokenExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
 
     user.verificationToken = verificationToken;
     user.verificationTokenExpires = verificationTokenExpires;
+    user.verificationCode = verificationCode;
+    user.verificationCodeExpires = verificationCodeExpires;
     await user.save();
 
-    // Send verification email
-    const emailResult = await sendVerificationEmail(email, user.username, verificationToken);
+    // Send verification code email
+    const emailResult = await sendVerificationCodeEmail(email, user.username, verificationCode);
     
     if (!emailResult.success) {
-      console.error('Failed to send verification email:', emailResult.error);
+      console.error('[Resend] Failed to send verification email:', emailResult.error);
       return res.status(500).json({ 
         error: 'Failed to send verification email. Please try again later.' 
       });
@@ -66,7 +79,7 @@ export default async function handler(req, res) {
       message: 'Verification email sent successfully. Please check your inbox.' 
     });
   } catch (error) {
-    console.error('Resend verification error:', error);
-    return res.status(500).json({ error: 'Server error' });
+    console.error('[Resend] Error:', error.message);
+    return res.status(500).json({ error: 'Server error during resend' });
   }
 }
