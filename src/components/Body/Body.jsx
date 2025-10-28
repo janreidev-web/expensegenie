@@ -15,10 +15,10 @@ import {
 
 // MODIFIED: The menuItems array is updated
 const menuItems = [
-  { name: "Dashboard", icon: ChartPieIcon, component: <Dashboard /> },
-  { name: "Summary", icon: DocumentChartBarIcon, component: <Summary /> },
-  { name: "Trends", icon: PresentationChartLineIcon, component: <Trends /> },
-  { name: "Budgeting", icon: BanknotesIcon, component: <Budgeting /> },
+  { name: "Dashboard", icon: ChartPieIcon, component: Dashboard },
+  { name: "Summary", icon: DocumentChartBarIcon, component: Summary },
+  { name: "Trends", icon: PresentationChartLineIcon, component: Trends },
+  { name: "Budgeting", icon: BanknotesIcon, component: Budgeting },
 ];
 
 const CONTENT_MAP = menuItems.reduce((map, item) => {
@@ -35,6 +35,8 @@ const Body = () => {
     setUsername(storedUsername);
   }, []);
 
+  const SelectedComponent = CONTENT_MAP[selectedItem];
+
   return (
     <div className="flex flex-col md:flex-row bg-slate-50 h-[calc(100vh-5rem)]">
       <Sidebar
@@ -43,9 +45,11 @@ const Body = () => {
         selectedItem={selectedItem}
         setSelectedItem={setSelectedItem}
       />
-      <div className="flex-1 p-6 overflow-y-auto">
-        {CONTENT_MAP[selectedItem]}
-      </div>
+      <main className="flex-1 overflow-y-auto">
+        <div className="p-6 max-w-7xl mx-auto">
+          <SelectedComponent key={selectedItem} />
+        </div>
+      </main>
     </div>
   );
 };

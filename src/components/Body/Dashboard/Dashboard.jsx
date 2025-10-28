@@ -78,18 +78,23 @@ const Dashboard = () => {
         />
       )}
 
-      <section className="w-full max-w-7xl mx-auto p-6 space-y-6">
+      <div className="space-y-6">
         {/* Dashboard Header */}
-        <div className="flex justify-between items-center">
-           <h3 className="text-3xl font-bold text-slate-800">Dashboard</h3>
-           <button
-            onClick={() => setShowAddForm(true)}
-            className="flex items-center gap-2 bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow hover:bg-blue-700 transition-colors"
-          >
-            <PlusCircleIcon className="h-6 w-6" />
-            Add Expense
-          </button>
-        </div>
+        <section className="bg-white p-6 rounded-lg shadow">
+          <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
+            <div>
+              <h3 className="text-2xl font-bold text-slate-900">Dashboard</h3>
+              <p className="text-gray-600">Your expense dashboard overview.</p>
+            </div>
+            <button
+              onClick={() => setShowAddForm(true)}
+              className="flex items-center gap-2 bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow hover:bg-blue-700 transition-colors"
+            >
+              <PlusCircleIcon className="h-6 w-6" />
+              Add Expense
+            </button>
+          </div>
+        </section>
 
         {/* NEW: KPI Cards Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -112,7 +117,7 @@ const Dashboard = () => {
              />
           </div>
         </div>
-      </section>
+      </div>
     </>
   );
 };

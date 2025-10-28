@@ -401,6 +401,7 @@ const Budgeting = () => {
   const [showAssistant, setShowAssistant] = useState(false);
   const [showEditBudget, setShowEditBudget] = useState(false);
   const [editableBudgets, setEditableBudgets] = useState({});
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -471,6 +472,7 @@ const Budgeting = () => {
   };
 
   const handleSaveBudgets = async () => {
+    setIsSaving(true);
     try {
       const token = localStorage.getItem("token");
       const res = await fetch("/api/budgets/update", {
@@ -485,7 +487,7 @@ const Budgeting = () => {
       if (res.ok) {
         setBudgets(editableBudgets);
         setShowEditBudget(false);
-        toast.success("Budgets updated successfully!");
+        toast.success("Budget Updated Successfully! 🎉");
       } else {
         const errorData = await res.json();
         console.error("[Budget Update] Error response:", errorData);
@@ -494,6 +496,8 @@ const Budgeting = () => {
     } catch (err) {
       console.error("[Budget Update] Exception:", err);
       toast.error("Error updating budgets");
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -521,8 +525,27 @@ const Budgeting = () => {
               ))}
             </div>
             <div className="flex justify-end gap-2 mt-6">
-              <button onClick={() => setShowEditBudget(false)} className="px-4 py-2 bg-gray-200 rounded">Cancel</button>
-              <button onClick={handleSaveBudgets} className="px-4 py-2 bg-blue-600 text-white rounded">Save Changes</button>
+              <button 
+                onClick={() => setShowEditBudget(false)} 
+                disabled={isSaving}
+                className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={handleSaveBudgets} 
+                disabled={isSaving}
+                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              >
+                {isSaving ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    <span>Saving...</span>
+                  </>
+                ) : (
+                  'Save Changes'
+                )}
+              </button>
             </div>
           </div>
         </div>
