@@ -28,6 +28,56 @@ const BudgetCard = ({ category, spent, budget }) => {
   );
 };
 
+// Savings Goal Card
+const GoalCard = ({ goal }) => {
+  const percentage = goal.goalAmount > 0 ? (goal.currentSavings / goal.goalAmount) * 100 : 0;
+  const remaining = goal.goalAmount - goal.currentSavings;
+  const daysLeft = Math.ceil((new Date(goal.targetDate) - new Date()) / (1000 * 60 * 60 * 24));
+  
+  return (
+    <div className="bg-gradient-to-br from-purple-50 to-blue-50 p-5 rounded-lg shadow-lg border border-purple-200">
+      <div className="flex items-start justify-between mb-3">
+        <div className="flex-1">
+          <h4 className="font-bold text-lg text-purple-900">{goal.goalName}</h4>
+          <p className="text-sm text-purple-700 mt-1">
+            Target: {new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP' }).format(goal.goalAmount)}
+          </p>
+        </div>
+        <span className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded">🎯 {goal.months} months</span>
+      </div>
+      
+      {goal.pricingInfo && (
+        <div className="mb-3 p-2 bg-white/60 rounded text-xs text-gray-700">
+          🔍 <strong>{goal.pricingInfo.itemName}</strong> - ₱{goal.pricingInfo.price.toLocaleString()}
+        </div>
+      )}
+      
+      <div className="w-full bg-purple-200 rounded-full h-3 mb-2">
+        <div 
+          className="bg-gradient-to-r from-purple-600 to-blue-600 h-3 rounded-full transition-all duration-300" 
+          style={{ width: `${Math.min(percentage, 100)}%` }}
+        ></div>
+      </div>
+      
+      <div className="flex justify-between text-sm mb-3">
+        <span className="text-purple-700 font-semibold">
+          Saved: ₱{goal.currentSavings.toLocaleString()} ({percentage.toFixed(1)}%)
+        </span>
+        <span className="text-purple-600">
+          {daysLeft > 0 ? `${daysLeft} days left` : 'Overdue'}
+        </span>
+      </div>
+      
+      <div className="text-sm text-purple-800 bg-white/50 p-3 rounded">
+        <strong>Monthly Target:</strong> ₱{goal.plan.requiredMonthlySavings.toLocaleString()}
+        <div className="text-xs text-purple-600 mt-1">
+          Remaining: ₱{remaining.toLocaleString()}
+        </div>
+      </div>
+    </div>
+  );
+};
+
 
 // The Modal for the AI-Powered Savings Goal Assistant
 const SavingsGoalModal = ({ expenses, budgets, onClose }) => {
@@ -104,6 +154,27 @@ const SavingsGoalModal = ({ expenses, budgets, onClose }) => {
         setPlan(data.plan);
         setAiGenerated(data.aiGenerated);
         setPricingInfo(data.pricingInfo);
+        
+        // Save the goal to database
+        try {
+          await fetch('/api/goals/save', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`,
+            },
+            body: JSON.stringify({
+              goalName: goalName.trim(),
+              goalAmount: data.plan.goalAmount,
+              months: parseInt(months),
+              plan: data.plan,
+              pricingInfo: data.pricingInfo,
+            }),
+          });
+        } catch (saveError) {
+          console.error('[Save Goal] Error:', saveError);
+          // Don't show error to user, it's not critical
+        }
         
         if (data.pricingInfo) {
           toast.success(`🔍 Found pricing: ₱${data.pricingInfo.price.toLocaleString()}!`, { duration: 4000 });
@@ -307,7 +378,7 @@ const SavingsGoalModal = ({ expenses, budgets, onClose }) => {
               <button onClick={() => {setPlan(null); setPricingInfo(null);}} className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 transition">
                 Try Another Goal
               </button>
-              <button onClick={onClose} className="px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded hover:from-blue-700 hover:to-purple-700 transition">
+              <button onClick={() => {onClose(); window.location.reload();}} className="px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded hover:from-blue-700 hover:to-purple-700 transition">
                 Got it! 🚀
               </button>
             </div>
@@ -325,6 +396,7 @@ const Budgeting = () => {
   const [budgets, setBudgets] = useState({}); // e.g., { Food: 500, Leisure: 200 }
   const [expenses, setExpenses] = useState([]);
   const [currentSpending, setCurrentSpending] = useState({});
+  const [goals, setGoals] = useState([]); // Savings goals
   const [loading, setLoading] = useState(true);
   const [showAssistant, setShowAssistant] = useState(false);
   const [showEditBudget, setShowEditBudget] = useState(false);
@@ -334,17 +406,20 @@ const Budgeting = () => {
     const fetchData = async () => {
       try {
         const token = localStorage.getItem("token");
-        // NOTE: Assumes you have an API to get user-defined budgets.
-        const [budgetRes, expenseRes] = await Promise.all([
+        // Fetch budgets, expenses, and goals
+        const [budgetRes, expenseRes, goalsRes] = await Promise.all([
           fetch("/api/budgets/get", { headers: { Authorization: `Bearer ${token}` } }),
           fetch("/api/expenses/display-expense", { headers: { Authorization: `Bearer ${token}` } }),
+          fetch("/api/goals/get", { headers: { Authorization: `Bearer ${token}` } }),
         ]);
 
         const budgetData = await budgetRes.json();
         const expenseData = await expenseRes.json();
+        const goalsData = await goalsRes.json();
 
         setBudgets(budgetData.budgets || {});
         setExpenses(expenseData.expenses || []);
+        setGoals(goalsData.goals || []);
         
         // Calculate current month's spending per category
         const today = new Date();
@@ -457,23 +532,41 @@ const Budgeting = () => {
         </div>
       </section>
 
-      {Object.keys(budgets).length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {Object.entries(budgets).map(([category, budgetAmount]) => (
-            <BudgetCard 
-              key={category}
-              category={category}
-              spent={currentSpending[category] || 0}
-              budget={budgetAmount}
-            />
-          ))}
-        </div>
-      ) : (
-        <div className="text-center py-12 bg-white rounded-lg shadow">
-          <h4 className="text-xl font-semibold">No budgets set.</h4>
-          <p className="text-gray-500 mt-2">Go to Settings to create your first monthly budget!</p>
-        </div>
+      {/* Savings Goals Section */}
+      {goals.length > 0 && (
+        <section>
+          <h3 className="text-xl font-bold text-slate-900 mb-4 flex items-center gap-2">
+            <span>🎯</span> Savings Goals
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {goals.map((goal) => (
+              <GoalCard key={goal._id} goal={goal} />
+            ))}
+          </div>
+        </section>
       )}
+
+      {/* Monthly Budgets Section */}
+      <section>
+        <h3 className="text-xl font-bold text-slate-900 mb-4">📊 Monthly Budgets</h3>
+        {Object.keys(budgets).length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {Object.entries(budgets).map(([category, budgetAmount]) => (
+              <BudgetCard 
+                key={category}
+                category={category}
+                spent={currentSpending[category] || 0}
+                budget={budgetAmount}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-12 bg-white rounded-lg shadow">
+            <h4 className="text-xl font-semibold">No budgets set.</h4>
+            <p className="text-gray-500 mt-2">Go to Settings to create your first monthly budget!</p>
+          </div>
+        )}
+      </section>
     </div>
   );
 };
