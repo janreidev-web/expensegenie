@@ -77,23 +77,23 @@ const Header = () => {
                         </span>
                     </Link>
 
-                    {/* Desktop Navigation */}
-                    <div className="hidden lg:flex items-center gap-2">
-                        {navLinks.map((link) => {
-                            // --- NEW: Check if the link's path matches the current URL ---
-                            const isActive = location.pathname === link.path;
-                            return (
-                                // --- CHANGE: Apply styles conditionally based on `isActive` ---
-                                <Link key={link.name} to={link.path} className={`px-4 py-2 text-base font-medium relative group ${isActive ? 'text-indigo-600' : 'text-gray-600 hover:text-indigo-500'}`}>
-                                    {link.name}
-                                    <span className={`absolute bottom-0 left-0 w-full h-0.5 bg-indigo-500 transition-transform origin-center duration-300 ${isActive ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'}`}></span>
-                                </Link>
-                            );
-                        })}
-                    </div>
+                    {/* Desktop Navigation - Hidden */}
+                    {/* {!isLoggedIn && (
+                        <div className="hidden lg:flex items-center gap-2">
+                            {navLinks.map((link) => {
+                                const isActive = location.pathname === link.path;
+                                return (
+                                    <Link key={link.name} to={link.path} className={`px-4 py-2 text-base font-medium relative group ${isActive ? 'text-indigo-600' : 'text-gray-600 hover:text-indigo-500'}`}>
+                                        {link.name}
+                                        <span className={`absolute bottom-0 left-0 w-full h-0.5 bg-indigo-500 transition-transform origin-center duration-300 ${isActive ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'}`}></span>
+                                    </Link>
+                                );
+                            })}
+                        </div>
+                    )} */}
                     
-                    {/* ... (Auth buttons and mobile menu button are unchanged) ... */}
-                     <div className="hidden lg:flex items-center gap-4 ml-6">
+                    {/* Auth buttons */}
+                    <div className="flex items-center gap-4 ml-6">
                         {isLoggedIn ? (
                             <div className="relative" ref={dropdownRef}>
                                 <UserAvatar username={username} onClick={() => setIsDropdownOpen(!isDropdownOpen)} />
@@ -113,7 +113,8 @@ const Header = () => {
                             </Link>
                         )}
                     </div>
-                    <div className="lg:hidden">
+                    {/* Mobile menu button - Hidden */}
+                    {/* <div className="lg:hidden">
                         <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500">
                             <span className="sr-only">Open menu</span>
                             <div className="w-6 h-6 flex flex-col justify-around">
@@ -122,25 +123,22 @@ const Header = () => {
                                 <span className={`block h-0.5 bg-gray-800 transition-transform duration-300 ease-in-out ${isMobileMenuOpen ? '-rotate-45 -translate-y-[5px]' : ''}`}></span>
                             </div>
                         </button>
-                    </div>
+                    </div> */}
                 </div>
             </div>
 
-            {/* Mobile Navigation Menu */}
-            <div className={`lg:hidden transition-all duration-500 ease-in-out overflow-hidden ${isMobileMenuOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'}`}>
+            {/* Mobile Navigation Menu - Hidden */}
+            {/* <div className={`lg:hidden transition-all duration-500 ease-in-out overflow-hidden ${isMobileMenuOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'}`}>
                 <div className="px-2 pt-2 pb-8 space-y-2 text-center border-t">
                     {navLinks.map((link) => {
-                        // --- NEW: Also check for the active link in the mobile menu ---
                         const isActive = location.pathname === link.path;
                         return (
-                            // --- CHANGE: Apply styles conditionally ---
                             <Link key={link.name} to={link.path} className={`block px-3 py-3 rounded-md text-lg font-medium ${isActive ? 'bg-indigo-50 text-indigo-600' : 'hover:bg-gray-100'}`} onClick={() => setIsMobileMenuOpen(false)}>
                                 {link.name}
                             </Link>
                         );
                     })}
                     <div className="mt-6">
-                        {/* ... (Mobile login/signup buttons are unchanged) ... */}
                          {isLoggedIn ? (
                             <div className="flex flex-col items-center gap-4">
                                 <p className="font-semibold text-lg">{username}</p>
@@ -155,7 +153,7 @@ const Header = () => {
                         )}
                     </div>
                 </div>
-            </div>
+            </div> */}
         </nav>
     );
 };
