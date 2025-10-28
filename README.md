@@ -41,12 +41,14 @@ Experience Expense Genie live in your browser. No installation required!
 
 ### 🤖 AI-Powered Features
 
-| Feature | Description |
-| :--- | :--- |
-| **🔍 Automatic Pricing Search** | Just name your goal (e.g., "iPhone 15 Pro") and AI finds the current market price for you—no manual research needed! |
-| **💡 Smart Budget Planning** | AI analyzes your spending patterns and creates personalized savings plans with realistic budget cuts and actionable tips. |
-| **🎯 Intelligent Categorization** | Automatically categorizes expenses with 90%+ accuracy using advanced AI and comprehensive keyword matching. |
-| **📊 Deep Spending Analysis** | Get personalized insights about your spending habits, identify patterns, and discover optimization opportunities. |
+| Feature | Description | Requires OpenAI |
+| :--- | :--- | :---: |
+| **🔍 Automatic Pricing Search** | Just name your goal (e.g., "iPhone 15 Pro") and AI finds the current market price for you—no manual research needed! | ✅ Yes |
+| **💡 Smart Budget Planning** | AI analyzes your spending patterns and creates personalized savings plans with realistic budget cuts and actionable tips. | 🔄 Enhanced |
+| **🎯 Intelligent Categorization** | Automatically categorizes expenses with 90%+ accuracy using advanced AI and comprehensive keyword matching. | 🔄 Enhanced |
+| **📊 Deep Spending Analysis** | Get personalized insights about your spending habits, identify patterns, and discover optimization opportunities. | 🔄 Enhanced |
+
+> **Note:** Features marked with "Enhanced" work without OpenAI using smart rule-based algorithms, but provide deeper insights with OpenAI API.
 
 ### 💰 Budget & Planning
 
@@ -192,6 +194,30 @@ Make sure you have the following installed:
 npm run build
 npm run preview
 ```
+
+---
+
+## 🔑 OpenAI API Key (Optional)
+
+ExpenseGenie works great **without** an OpenAI API key! Here's what you get:
+
+### ✅ Without OpenAI API Key
+- ✨ **Smart Budget Planning** - Rule-based algorithm with category-specific strategies
+- 🎯 **Expense Categorization** - 90%+ accuracy using comprehensive keyword matching
+- 📊 **Spending Analysis** - Pattern detection and trend identification
+- 💡 **Actionable Tips** - Pre-defined money-saving strategies per category
+- 📈 **All Core Features** - Full app functionality
+
+### 🚀 With OpenAI API Key (Enhanced)
+- 🔍 **Automatic Pricing Search** - AI finds current market prices for your goals
+- 🤖 **Personalized Insights** - Custom recommendations based on your unique patterns
+- 💬 **Natural Language** - Better understanding of expense descriptions
+- 🎯 **Deeper Analysis** - More nuanced spending pattern recognition
+
+**To enable OpenAI features:**
+1. Get an API key from [OpenAI Platform](https://platform.openai.com/api-keys)
+2. Add to your `.env` file: `OPENAI_API_KEY=your_api_key_here`
+3. Restart your server
 
 ---
 

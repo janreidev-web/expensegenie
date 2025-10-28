@@ -111,9 +111,16 @@ const SavingsGoalModal = ({ expenses, budgets, onClose }) => {
           toast.success(data.aiGenerated ? '🤖 AI-powered plan generated!' : '✨ Smart plan generated!');
         }
       } else {
-        // Show the specific error message from the server
-        const errorMsg = data.error || 'Failed to generate plan';
-        toast.error(errorMsg, { duration: 5000 });
+        // Handle pricing search failure gracefully
+        if (data.error && data.error.includes('Could not find pricing')) {
+          toast.error("⚠️ Automatic pricing search is currently unavailable. Please enter the amount manually.", { duration: 6000 });
+          // Disable pricing search and let user try again with manual amount
+          setSearchPricing(false);
+        } else {
+          // Show the specific error message from the server
+          const errorMsg = data.error || 'Failed to generate plan';
+          toast.error(errorMsg, { duration: 5000 });
+        }
         
         // Log for debugging
         console.error('[Budget Plan Error]', data);
@@ -153,9 +160,10 @@ const SavingsGoalModal = ({ expenses, budgets, onClose }) => {
                   }}
                   className="w-4 h-4 text-purple-600"
                 />
-                <div>
+                <div className="flex-1">
                   <span className="font-semibold text-purple-900">🔍 Search for current pricing automatically</span>
                   <p className="text-xs text-purple-700">AI will find the latest market price for you</p>
+                  <p className="text-xs text-purple-600 mt-1 italic">Note: Requires OpenAI API key for automatic pricing</p>
                 </div>
               </label>
             </div>
