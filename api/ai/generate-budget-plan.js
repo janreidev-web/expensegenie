@@ -45,6 +45,15 @@ export default async function handler(req, res) {
       try {
         pricingInfo = await searchItemPricing(goalName);
         finalGoalAmount = pricingInfo.price;
+        
+        // Validate the price returned from search
+        if (!finalGoalAmount || isNaN(finalGoalAmount) || finalGoalAmount <= 0) {
+          console.error('[Price Search] Invalid price returned:', pricingInfo);
+          return res.status(400).json({ 
+            error: 'Pricing search returned invalid data. Please enter the amount manually.',
+            details: `Received price: ${finalGoalAmount}`
+          });
+        }
       } catch (searchError) {
         console.error('[Price Search] Error:', searchError.message);
         return res.status(400).json({ 
@@ -161,22 +170,47 @@ Respond ONLY with valid JSON in this exact format:
       });
 
       const data = await response.json();
+      
+      // Check for API errors
+      if (!response.ok) {
+        throw new Error(`Gemini API error: ${data.error?.message || JSON.stringify(data)}`);
+      }
+      
+      // Log the full response for debugging
+      console.log('[Price Search] Gemini response:', JSON.stringify(data));
+      
       const aiResponse = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
 
       if (aiResponse) {
-        const jsonMatch = aiResponse.match(/\{[\s\S]*\}/);
+        console.log('[Price Search] AI text:', aiResponse);
+        
+        // Remove markdown code blocks if present
+        let cleanResponse = aiResponse.replace(/```json\s*/g, '').replace(/```\s*/g, '');
+        
+        const jsonMatch = cleanResponse.match(/\{[\s\S]*\}/);
         if (jsonMatch) {
           const pricingData = JSON.parse(jsonMatch[0]);
+          const price = parseFloat(pricingData.price);
+          
+          // Validate the price
+          if (!price || isNaN(price) || price <= 0) {
+            throw new Error(`Invalid price from Gemini: ${pricingData.price}`);
+          }
+          
           return {
             itemName: pricingData.itemName || itemName,
-            price: parseFloat(pricingData.price) || 0,
+            price: price,
             source: pricingData.source || 'Gemini AI Market Research',
             notes: pricingData.notes || null,
           };
         }
+        throw new Error('Could not find JSON in Gemini response');
       }
+      throw new Error('No response from Gemini API');
     } catch (error) {
       console.error('[Price Search] Gemini pricing failed:', error.message);
+      // Don't silently fail - throw to trigger fallback
+      throw error;
     }
   }
 
@@ -307,8 +341,11 @@ Response Format (JSON only):
 
   if (!aiResponse) throw new Error('No Gemini response');
 
+  // Remove markdown code blocks if present
+  let cleanResponse = aiResponse.replace(/```json\s*/g, '').replace(/```\s*/g, '');
+
   // Parse JSON response
-  const jsonMatch = aiResponse.match(/\{[\s\S]*\}/);
+  const jsonMatch = cleanResponse.match(/\{[\s\S]*\}/);
   if (!jsonMatch) throw new Error('Invalid JSON in Gemini response');
 
   const planData = JSON.parse(jsonMatch[0]);
