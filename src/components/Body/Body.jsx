@@ -36,7 +36,7 @@ const Body = () => {
   }, []);
 
   return (
-    <div className="flex flex-col md:flex-row bg-slate-50 h-full">
+    <div className="flex flex-col md:flex-row bg-slate-50 h-[calc(100vh-5rem)]">
       <Sidebar
         username={username}
         menuItems={menuItems}

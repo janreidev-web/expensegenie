@@ -47,11 +47,14 @@ function Home() {
   }, [isLoggedIn]);
 
   return (
-    <div className="flex flex-col h-screen overflow-hidden">
+    <div className="flex flex-col min-h-screen">
       <Header />
-      <main className="flex-grow overflow-y-auto">
+      <main className="flex-grow pt-20">
         {isLoggedIn ? (
-          <Body />
+          <>
+            <Body />
+            <Footer />
+          </>
         ) : (
           <>
             <LandingPage isFooterVisible={isFooterInView} />
@@ -59,7 +62,6 @@ function Home() {
           </>
         )}
       </main>
-      {isLoggedIn && <Footer />}
     </div>
   );
 }
