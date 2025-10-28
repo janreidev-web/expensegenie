@@ -10,6 +10,15 @@
   display: none; /* Chrome, Safari, Opera */
 }
 
+/* Prevent unnecessary scrollbars on body */
+html, body {
+  overflow-x: hidden;
+  height: 100%;
+}
+
+#root {
+  height: 100%;
+}
 
 @layer utilities {
   /* Animation for elements fading in gently */

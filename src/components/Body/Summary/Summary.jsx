@@ -53,8 +53,26 @@ const Summary = () => {
     }
   }, [availableMonths, selectedDate]);
 
-  if (loading) return <div className="text-center py-10">Loading Summary...</div>;
-  if (error) return <div className="text-center py-10 text-red-500">Error: {error}</div>;
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
+          <p className="text-gray-600 font-medium">Loading Summary...</p>
+        </div>
+      </div>
+    );
+  }
+  
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center p-6 bg-red-50 rounded-lg border border-red-200">
+          <p className="text-red-600 font-medium">⚠️ Error: {error}</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
