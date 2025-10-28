@@ -157,7 +157,7 @@ const SavingsGoalModal = ({ expenses, budgets, onClose }) => {
         
         // Save the goal to database
         try {
-          await fetch('/api/goals/save', {
+          await fetch('/api/goals', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -410,7 +410,7 @@ const Budgeting = () => {
         const [budgetRes, expenseRes, goalsRes] = await Promise.all([
           fetch("/api/budgets/get", { headers: { Authorization: `Bearer ${token}` } }),
           fetch("/api/expenses/display-expense", { headers: { Authorization: `Bearer ${token}` } }),
-          fetch("/api/goals/get", { headers: { Authorization: `Bearer ${token}` } }),
+          fetch("/api/goals", { headers: { Authorization: `Bearer ${token}` } }),
         ]);
 
         const budgetData = await budgetRes.json();
