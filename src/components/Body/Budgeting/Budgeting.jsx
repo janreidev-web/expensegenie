@@ -41,16 +41,28 @@ const SavingsGoalModal = ({ expenses, budgets, onClose }) => {
   const [pricingInfo, setPricingInfo] = useState(null);
 
   const generatePlan = async () => {
-    // If searching for pricing, goalName is required but not goalAmount
-    if (searchPricing && !goalName) {
-      toast.error("Please enter what you're saving for so we can search for pricing.");
+    // Validate goal name
+    if (!goalName || goalName.trim() === '') {
+      toast.error("Please enter what you're saving for.");
       return;
     }
+
+    // Parse and validate goal amount
+    const parsedAmount = goalAmount ? parseFloat(goalAmount) : null;
     
-    // If not searching, both are required
-    if (!searchPricing && (!goalAmount || goalAmount <= 0)) {
-      toast.error("Please enter a valid amount or enable price search.");
-      return;
+    // If searching for pricing, don't require amount
+    if (searchPricing) {
+      // Just need goal name for pricing search
+      if (!goalName.trim()) {
+        toast.error("Please enter what you're saving for so we can search for pricing.");
+        return;
+      }
+    } else {
+      // Not searching - require valid amount
+      if (!parsedAmount || isNaN(parsedAmount) || parsedAmount <= 0) {
+        toast.error("Please enter a valid amount greater than 0, or enable price search.");
+        return;
+      }
     }
 
     setIsGenerating(true);
@@ -63,6 +75,13 @@ const SavingsGoalModal = ({ expenses, budgets, onClose }) => {
       threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
       const recentExpenses = expenses.filter(e => new Date(e.date) >= threeMonthsAgo);
 
+      // Validate we have expenses
+      if (recentExpenses.length === 0) {
+        toast.error("You need at least some expense history to generate a budget plan. Add some expenses first!");
+        setIsGenerating(false);
+        return;
+      }
+
       const res = await fetch('/api/ai/generate-budget-plan', {
         method: 'POST',
         headers: {
@@ -70,12 +89,12 @@ const SavingsGoalModal = ({ expenses, budgets, onClose }) => {
           'Authorization': `Bearer ${token}`,
         },
         body: JSON.stringify({
-          goalName: goalName || 'Your Goal',
-          goalAmount: goalAmount ? parseFloat(goalAmount) : null,
-          months,
+          goalName: goalName.trim(),
+          goalAmount: parsedAmount,
+          months: parseInt(months),
           expenses: recentExpenses,
-          currentBudgets: budgets,
-          searchPricing: searchPricing && !goalAmount,
+          currentBudgets: budgets || {},
+          searchPricing: searchPricing && !parsedAmount,
         }),
       });
 
@@ -87,15 +106,21 @@ const SavingsGoalModal = ({ expenses, budgets, onClose }) => {
         setPricingInfo(data.pricingInfo);
         
         if (data.pricingInfo) {
-          toast.success(`🔍 Found pricing: ₱${data.pricingInfo.price.toLocaleString()}!`);
+          toast.success(`🔍 Found pricing: ₱${data.pricingInfo.price.toLocaleString()}!`, { duration: 4000 });
         } else {
           toast.success(data.aiGenerated ? '🤖 AI-powered plan generated!' : '✨ Smart plan generated!');
         }
       } else {
-        toast.error(data.error || 'Failed to generate plan');
+        // Show the specific error message from the server
+        const errorMsg = data.error || 'Failed to generate plan';
+        toast.error(errorMsg, { duration: 5000 });
+        
+        // Log for debugging
+        console.error('[Budget Plan Error]', data);
       }
     } catch (err) {
-      toast.error('Something went wrong. Please try again.');
+      console.error('[Budget Plan Error]', err);
+      toast.error('Network error. Please check your connection and try again.', { duration: 5000 });
     } finally {
       setIsGenerating(false);
     }

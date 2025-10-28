@@ -24,31 +24,41 @@ export default async function handler(req, res) {
   const token = authHeader.split(' ')[1];
   const { goalName, goalAmount, months, expenses, currentBudgets, searchPricing } = req.body;
 
-  if (!months || !expenses) {
-    return res.status(400).json({ error: 'Missing required fields' });
+  // Validation
+  if (!months || !expenses || !Array.isArray(expenses)) {
+    return res.status(400).json({ error: 'Missing required fields: months and expenses are required' });
+  }
+
+  // Check if we have either goalAmount or searchPricing enabled
+  if (!goalAmount && !searchPricing) {
+    return res.status(400).json({ error: 'Please enter a goal amount or enable price search' });
   }
 
   try {
     jwt.verify(token, process.env.JWT_SECRET);
 
-    let finalGoalAmount = goalAmount;
+    let finalGoalAmount = goalAmount ? parseFloat(goalAmount) : null;
     let pricingInfo = null;
 
     // If searchPricing is true and goalName is provided, search for pricing
-    if (searchPricing && goalName && !goalAmount) {
+    if (searchPricing && goalName && !finalGoalAmount) {
       try {
         pricingInfo = await searchItemPricing(goalName);
         finalGoalAmount = pricingInfo.price;
       } catch (searchError) {
         console.error('[Price Search] Error:', searchError.message);
         return res.status(400).json({ 
-          error: 'Could not find pricing. Please enter the amount manually.' 
+          error: 'Could not find pricing information. Please enter the amount manually.',
+          details: searchError.message
         });
       }
     }
 
-    if (!finalGoalAmount || finalGoalAmount <= 0) {
-      return res.status(400).json({ error: 'Invalid goal amount' });
+    // Final validation of goal amount
+    if (!finalGoalAmount || isNaN(finalGoalAmount) || finalGoalAmount <= 0) {
+      return res.status(400).json({ 
+        error: 'Invalid goal amount. Please provide a valid amount greater than 0.' 
+      });
     }
 
     // Calculate required monthly savings
