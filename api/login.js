@@ -34,6 +34,15 @@ export default async function handler(req, res) {
       return res.status(401).json({ error: 'Invalid email or password' });
     }
 
+    // Check if email is verified
+    if (!user.isEmailVerified) {
+      return res.status(403).json({ 
+        error: 'Please verify your email address before logging in. Check your inbox for the verification link.',
+        emailNotVerified: true,
+        email: user.email,
+      });
+    }
+
     const payload = {
       id: user._id,
       username: user.username,
