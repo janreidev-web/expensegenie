@@ -77,8 +77,8 @@ const Header = () => {
                         </span>
                     </Link>
 
-                    {/* Desktop Navigation - Hidden */}
-                    {/* {!isLoggedIn && (
+                    {/* Desktop Navigation - Show only when NOT logged in */}
+                    {!isLoggedIn && (
                         <div className="hidden lg:flex items-center gap-2">
                             {navLinks.map((link) => {
                                 const isActive = location.pathname === link.path;
@@ -90,7 +90,7 @@ const Header = () => {
                                 );
                             })}
                         </div>
-                    )} */}
+                    )}
                     
                     {/* Auth buttons */}
                     <div className="flex items-center gap-4 ml-6">
@@ -113,47 +113,42 @@ const Header = () => {
                             </Link>
                         )}
                     </div>
-                    {/* Mobile menu button - Hidden */}
-                    {/* <div className="lg:hidden">
-                        <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500">
-                            <span className="sr-only">Open menu</span>
-                            <div className="w-6 h-6 flex flex-col justify-around">
-                                <span className={`block h-0.5 bg-gray-800 transition-transform duration-300 ease-in-out ${isMobileMenuOpen ? 'rotate-45 translate-y-[5px]' : ''}`}></span>
-                                <span className={`block h-0.5 bg-gray-800 transition-opacity duration-300 ${isMobileMenuOpen ? 'opacity-0' : ''}`}></span>
-                                <span className={`block h-0.5 bg-gray-800 transition-transform duration-300 ease-in-out ${isMobileMenuOpen ? '-rotate-45 -translate-y-[5px]' : ''}`}></span>
-                            </div>
-                        </button>
-                    </div> */}
+                    {/* Mobile menu button - Show only when NOT logged in */}
+                    {!isLoggedIn && (
+                        <div className="lg:hidden">
+                            <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500">
+                                <span className="sr-only">Open menu</span>
+                                <div className="w-6 h-6 flex flex-col justify-around">
+                                    <span className={`block h-0.5 bg-gray-800 transition-transform duration-300 ease-in-out ${isMobileMenuOpen ? 'rotate-45 translate-y-[5px]' : ''}`}></span>
+                                    <span className={`block h-0.5 bg-gray-800 transition-opacity duration-300 ${isMobileMenuOpen ? 'opacity-0' : ''}`}></span>
+                                    <span className={`block h-0.5 bg-gray-800 transition-transform duration-300 ease-in-out ${isMobileMenuOpen ? '-rotate-45 -translate-y-[5px]' : ''}`}></span>
+                                </div>
+                            </button>
+                        </div>
+                    )}
                 </div>
             </div>
 
-            {/* Mobile Navigation Menu - Hidden */}
-            {/* <div className={`lg:hidden transition-all duration-500 ease-in-out overflow-hidden ${isMobileMenuOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'}`}>
-                <div className="px-2 pt-2 pb-8 space-y-2 text-center border-t">
-                    {navLinks.map((link) => {
-                        const isActive = location.pathname === link.path;
-                        return (
-                            <Link key={link.name} to={link.path} className={`block px-3 py-3 rounded-md text-lg font-medium ${isActive ? 'bg-indigo-50 text-indigo-600' : 'hover:bg-gray-100'}`} onClick={() => setIsMobileMenuOpen(false)}>
-                                {link.name}
-                            </Link>
-                        );
-                    })}
-                    <div className="mt-6">
-                         {isLoggedIn ? (
-                            <div className="flex flex-col items-center gap-4">
-                                <p className="font-semibold text-lg">{username}</p>
-                                <button onClick={handleLogout} className="w-full max-w-xs px-4 py-3 rounded-md font-semibold bg-red-500 text-white" disabled={isLoggingOut}>
-                                    {isLoggingOut ? "Signing out..." : "Sign out"}
-                                </button>
-                            </div>
-                        ) : (
+            {/* Mobile Navigation Menu - Show only when NOT logged in */}
+            {!isLoggedIn && (
+                <div className={`lg:hidden transition-all duration-500 ease-in-out overflow-hidden ${isMobileMenuOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'}`}>
+                    <div className="px-2 pt-2 pb-8 space-y-2 text-center border-t">
+                        {navLinks.map((link) => {
+                            const isActive = location.pathname === link.path;
+                            return (
+                                <Link key={link.name} to={link.path} className={`block px-3 py-3 rounded-md text-lg font-medium ${isActive ? 'bg-indigo-50 text-indigo-600' : 'hover:bg-gray-100'}`} onClick={() => setIsMobileMenuOpen(false)}>
+                                    {link.name}
+                                </Link>
+                            );
+                        })}
+                        <div className="mt-6">
                             <Link to="/signup" className="block w-full max-w-xs mx-auto bg-indigo-500 text-white px-5 py-3 rounded-lg font-semibold hover:bg-indigo-600 transition-all duration-300" onClick={() => setIsMobileMenuOpen(false)}>
                                 Get Started
                             </Link>
-                        )}
+                        </div>
                     </div>
                 </div>
-            </div> */}
+            )}
         </nav>
     );
 };
