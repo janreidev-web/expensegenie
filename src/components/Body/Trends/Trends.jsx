@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Line, Doughnut } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, ArcElement, Title, Tooltip, Legend, Filler } from 'chart.js';
-import { TrendingUpIcon, TrendingDownIcon, CalendarIcon, ChartBarIcon, LightBulbIcon, ArrowUpIcon, ArrowDownIcon } from '@heroicons/react/24/outline';
+import { ArrowTrendingUpIcon, ArrowTrendingDownIcon, CalendarIcon, ChartBarIcon, LightBulbIcon, ArrowUpIcon, ArrowDownIcon } from '@heroicons/react/24/outline';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, ArcElement, Title, Tooltip, Legend, Filler);
 
@@ -186,7 +186,7 @@ const Trends = () => {
         <div className="bg-gradient-to-br from-blue-500 to-blue-600 p-6 rounded-lg shadow text-white">
           <div className="flex items-center justify-between mb-2">
             <p className="text-blue-100">Total Spent</p>
-            <TrendingDownIcon className="w-6 h-6" />
+            <ArrowTrendingDownIcon className="w-6 h-6" />
           </div>
           <p className="text-3xl font-bold">₱{insights.totalSpent.toLocaleString()}</p>
           <p className="text-sm text-blue-100 mt-2">Last {timeRange.replace('months', ' months').replace('1year', ' year')}</p>
@@ -213,7 +213,7 @@ const Trends = () => {
         <div className="bg-gradient-to-br from-indigo-500 to-indigo-600 p-6 rounded-lg shadow text-white">
           <div className="flex items-center justify-between mb-2">
             <p className="text-indigo-100">Prediction</p>
-            <TrendingUpIcon className="w-6 h-6" />
+            <ArrowTrendingUpIcon className="w-6 h-6" />
           </div>
           <p className="text-3xl font-bold">₱{insights.prediction.toLocaleString(undefined, {maximumFractionDigits: 0})}</p>
           <p className="text-sm text-indigo-100 mt-2">Expected next month</p>
