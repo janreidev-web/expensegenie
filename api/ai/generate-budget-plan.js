@@ -64,7 +64,26 @@ export default async function handler(req, res) {
     // Calculate required monthly savings
     const requiredMonthlySavings = finalGoalAmount / months;
 
-    // Use OpenAI if available, otherwise use smart rule-based system
+    // Try Gemini first (free tier available)
+    if (process.env.GEMINI_API_KEY) {
+      try {
+        const plan = await generateGeminiPlan(
+          goalName, 
+          finalGoalAmount, 
+          months, 
+          expenses, 
+          currentBudgets, 
+          requiredMonthlySavings,
+          pricingInfo
+        );
+        return res.status(200).json({ plan, aiGenerated: true, pricingInfo });
+      } catch (geminiError) {
+        console.error('[AI Budget Plan] Gemini error:', geminiError.message);
+        // Fall through to OpenAI
+      }
+    }
+
+    // Fallback to OpenAI if available
     if (process.env.OPENAI_API_KEY) {
       try {
         const plan = await generateAIPlanWithAnalysis(
@@ -83,7 +102,7 @@ export default async function handler(req, res) {
       }
     }
 
-    // Fallback: Smart rule-based plan with deep analysis
+    // Final Fallback: Smart rule-based plan with deep analysis
     const plan = generateAdvancedPlan(
       goalName, 
       finalGoalAmount, 
@@ -104,14 +123,64 @@ export default async function handler(req, res) {
   }
 }
 
-// Search for item pricing using web search
+// Search for item pricing using AI (OpenAI or Gemini)
 async function searchItemPricing(itemName) {
-  if (!itemName) throw new Error('Item name required');
+  const prompt = `What is the approximate current market price in Philippine Pesos (PHP/₱) for: "${itemName}"?
 
-  // Use a search API or scraping service - here's an example with SerpAPI or similar
-  // For demonstration, I'll show the structure. You'll need an API key for a search service.
-  
-  // Option 1: Use OpenAI to estimate (if OPENAI_API_KEY exists)
+Please provide:
+1. The estimated price in PHP
+2. A brief source note (e.g., "Based on typical retail prices" or "Average online price")
+
+Respond ONLY with valid JSON in this exact format:
+{
+  "itemName": "${itemName}",
+  "price": <number>,
+  "source": "source description",
+  "notes": "optional additional notes"
+}`;
+
+  // Try Gemini first (free tier available)
+  if (process.env.GEMINI_API_KEY) {
+    try {
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${process.env.GEMINI_API_KEY}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          contents: [{
+            parts: [{
+              text: prompt
+            }]
+          }],
+          generationConfig: {
+            temperature: 0.3,
+            maxOutputTokens: 200,
+          }
+        }),
+      });
+
+      const data = await response.json();
+      const aiResponse = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+
+      if (aiResponse) {
+        const jsonMatch = aiResponse.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          const pricingData = JSON.parse(jsonMatch[0]);
+          return {
+            itemName: pricingData.itemName || itemName,
+            price: parseFloat(pricingData.price) || 0,
+            source: pricingData.source || 'Gemini AI Market Research',
+            notes: pricingData.notes || null,
+          };
+        }
+      }
+    } catch (error) {
+      console.error('[Price Search] Gemini pricing failed:', error.message);
+    }
+  }
+
+  // Fallback to OpenAI
   if (process.env.OPENAI_API_KEY) {
     try {
       const response = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -125,42 +194,138 @@ async function searchItemPricing(itemName) {
           messages: [
             {
               role: 'system',
-              content: 'You are a price research assistant. When asked about an item price, provide the current market price in Philippine Pesos (PHP). Respond with ONLY a JSON object: {"price": number, "source": "string", "notes": "string"}'
+              content: 'You are a helpful assistant that provides current market pricing information. Always respond with valid JSON only.'
             },
             {
               role: 'user',
-              content: `What is the current average market price in PHP for: ${itemName}? Consider prices in the Philippines.`
+              content: prompt
             }
           ],
           temperature: 0.3,
-          max_tokens: 150,
+          max_tokens: 200,
         }),
       });
 
       const data = await response.json();
       const aiResponse = data.choices?.[0]?.message?.content?.trim();
-      
-      if (!aiResponse) throw new Error('No pricing data from AI');
 
-      const jsonMatch = aiResponse.match(/\{[\s\S]*\}/);
-      if (!jsonMatch) throw new Error('Invalid pricing response');
-
-      const pricingData = JSON.parse(jsonMatch[0]);
-      
-      return {
-        itemName,
-        price: pricingData.price,
-        source: pricingData.source || 'AI Market Research',
-        notes: pricingData.notes || 'Based on current market data',
-        searchedAt: new Date().toISOString(),
-      };
+      if (aiResponse) {
+        const jsonMatch = aiResponse.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          const pricingData = JSON.parse(jsonMatch[0]);
+          return {
+            itemName: pricingData.itemName || itemName,
+            price: parseFloat(pricingData.price) || 0,
+            source: pricingData.source || 'OpenAI Market Research',
+            notes: pricingData.notes || null,
+          };
+        }
+      }
     } catch (error) {
-      console.error('[Price Search] AI pricing failed:', error.message);
+      console.error('[Price Search] OpenAI pricing failed:', error.message);
     }
   }
 
-  // Option 2: Fallback - return null to require manual input
-  throw new Error('Pricing search unavailable. Please enter amount manually.');
+  // No AI available
+  throw new Error('Pricing search unavailable. Please enter amount manually or add GEMINI_API_KEY/OPENAI_API_KEY to environment variables.');
+}
+
+// Gemini-Powered Budget Plan Generation
+async function generateGeminiPlan(goalName, goalAmount, months, expenses, currentBudgets, requiredMonthlySavings, pricingInfo) {
+  // Deep spending analysis
+  const categorySpending = {};
+  const monthlySpending = {};
+  
+  expenses.forEach(exp => {
+    categorySpending[exp.category] = (categorySpending[exp.category] || 0) + exp.amount;
+    const month = exp.date.slice(0, 7);
+    monthlySpending[month] = (monthlySpending[month] || 0) + exp.amount;
+  });
+
+  const avgMonthlySpend = Object.values(monthlySpending).reduce((a, b) => a + b, 0) / Math.max(Object.keys(monthlySpending).length, 1);
+  const spendingSummary = Object.entries(categorySpending)
+    .map(([cat, amt]) => `${cat}: ₱${amt.toFixed(0)}`)
+    .join(', ');
+
+  const pricingContext = pricingInfo 
+    ? `\n\nPricing Research: The item "${pricingInfo.itemName}" costs approximately ₱${pricingInfo.price.toLocaleString()} (${pricingInfo.source}).` 
+    : '';
+
+  const prompt = `You are an expert financial advisor analyzing someone's budget to help them save for a specific goal.
+
+GOAL DETAILS:
+- Item: ${goalName || 'their goal'}
+- Total Cost: ₱${goalAmount.toLocaleString()}
+- Timeline: ${months} month(s)
+- Required Monthly Savings: ₱${requiredMonthlySavings.toFixed(0)}${pricingContext}
+
+CURRENT FINANCIAL SITUATION:
+- Average Monthly Spending: ₱${avgMonthlySpend.toFixed(0)}
+- Spending by Category (last 3 months): ${spendingSummary}
+- Current Monthly Budgets: ${JSON.stringify(currentBudgets)}
+
+ANALYSIS REQUIRED:
+1. Identify realistic areas to cut spending (max 30% per category, prioritize discretionary)
+2. Calculate if the goal is achievable within the timeline
+3. Provide specific, actionable tips for each recommended cut
+4. Suggest alternative strategies if the goal seems too ambitious
+5. Include a motivational insight based on their spending patterns
+
+Response Format (JSON only):
+{
+  "analysis": "Brief overview of their spending habits",
+  "cuts": [
+    {"category": "Food", "reduction": 500, "newBudget": 2500, "tip": "Meal prep on Sundays, pack lunch 4x/week"}
+  ],
+  "totalMonthlySavings": 1500,
+  "motivation": "Encouraging message with specific praise",
+  "achievable": true,
+  "alternatives": "Optional: Suggest if timeline should be extended",
+  "insights": ["Spending pattern 1", "Opportunity 2"]
+}`;
+
+  const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${process.env.GEMINI_API_KEY}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      contents: [{
+        parts: [{
+          text: prompt
+        }]
+      }],
+      generationConfig: {
+        temperature: 0.7,
+        maxOutputTokens: 1000,
+      }
+    }),
+  });
+
+  const data = await response.json();
+  const aiResponse = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+
+  if (!aiResponse) throw new Error('No Gemini response');
+
+  // Parse JSON response
+  const jsonMatch = aiResponse.match(/\{[\s\S]*\}/);
+  if (!jsonMatch) throw new Error('Invalid JSON in Gemini response');
+
+  const planData = JSON.parse(jsonMatch[0]);
+
+  return {
+    goalName: goalName || 'Your Goal',
+    goalAmount,
+    months,
+    requiredMonthlySavings,
+    analysis: planData.analysis || null,
+    cuts: planData.cuts || [],
+    totalSavings: planData.totalMonthlySavings || 0,
+    motivation: planData.motivation || 'You can do it!',
+    achievable: planData.achievable !== false,
+    alternatives: planData.alternatives || null,
+    insights: planData.insights || [],
+  };
 }
 
 // Enhanced AI-Powered Plan with Deep Analysis
