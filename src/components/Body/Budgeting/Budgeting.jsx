@@ -137,6 +137,8 @@ const Budgeting = () => {
   const [currentSpending, setCurrentSpending] = useState({});
   const [loading, setLoading] = useState(true);
   const [showAssistant, setShowAssistant] = useState(false);
+  const [showEditBudget, setShowEditBudget] = useState(false);
+  const [editableBudgets, setEditableBudgets] = useState({});
 
   useEffect(() => {
     const fetchData = async () => {
@@ -178,19 +180,81 @@ const Budgeting = () => {
 
   if (loading) return <div>Loading Budgets...</div>;
 
+  const handleEditBudgets = () => {
+    setEditableBudgets({ ...budgets });
+    setShowEditBudget(true);
+  };
+
+  const handleSaveBudgets = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch("/api/budgets/update", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ budgets: editableBudgets }),
+      });
+
+      if (res.ok) {
+        setBudgets(editableBudgets);
+        setShowEditBudget(false);
+        toast.success("Budgets updated successfully!");
+      } else {
+        toast.error("Failed to update budgets");
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Error updating budgets");
+    }
+  };
+
   return (
     <div className="space-y-6">
       {showAssistant && <SavingsGoalModal expenses={expenses} budgets={budgets} onClose={() => setShowAssistant(false)} />}
 
+      {showEditBudget && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center">
+          <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-2xl max-h-[80vh] overflow-y-auto">
+            <h3 className="text-xl font-bold mb-4">Edit Monthly Budgets</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {Object.entries(editableBudgets).map(([category, amount]) => (
+                <div key={category}>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{category}</label>
+                  <input
+                    type="number"
+                    value={amount}
+                    onChange={(e) => setEditableBudgets(prev => ({ ...prev, [category]: parseFloat(e.target.value) || 0 }))}
+                    className="w-full p-2 border rounded"
+                    min="0"
+                    step="100"
+                  />
+                </div>
+              ))}
+            </div>
+            <div className="flex justify-end gap-2 mt-6">
+              <button onClick={() => setShowEditBudget(false)} className="px-4 py-2 bg-gray-200 rounded">Cancel</button>
+              <button onClick={handleSaveBudgets} className="px-4 py-2 bg-blue-600 text-white rounded">Save Changes</button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <section className="bg-white p-6 rounded-lg shadow">
-        <div className="flex justify-between items-center">
+        <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
           <div>
             <h3 className="text-2xl font-bold text-slate-900">Monthly Budgets</h3>
             <p className="text-gray-600">Your real-time spending progress for the current month.</p>
           </div>
-          <button onClick={() => setShowAssistant(true)} className="bg-green-600 text-white font-bold py-2 px-4 rounded hover:bg-green-700 transition">
-            Plan a New Purchase 💡
-          </button>
+          <div className="flex gap-2">
+            <button onClick={handleEditBudgets} className="bg-blue-600 text-white font-bold py-2 px-4 rounded hover:bg-blue-700 transition">
+              Edit Budgets ✏️
+            </button>
+            <button onClick={() => setShowAssistant(true)} className="bg-green-600 text-white font-bold py-2 px-4 rounded hover:bg-green-700 transition">
+              Plan a New Purchase 💡
+            </button>
+          </div>
         </div>
       </section>
 

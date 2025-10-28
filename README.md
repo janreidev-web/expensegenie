@@ -57,7 +57,10 @@ This project was built using modern, efficient technologies to ensure a great de
 | **React** | A powerful JavaScript library for building user interfaces. |
 | **Tailwind CSS** | A utility-first CSS framework for rapid, custom UI development. |
 | **Lottie React** | Enables high-quality, lightweight animations. |
-| **Intersection Observer** | Triggers animations and events as you scroll for a dynamic feel. |
+| **MongoDB** | NoSQL database for storing user data and expenses securely. |
+| **Mongoose** | Elegant MongoDB object modeling for Node.js. |
+| **JWT** | JSON Web Tokens for secure authentication. |
+| **OpenAI API** | Powers intelligent AI-based expense categorization. |
 | **Vercel** | Seamless hosting and CI/CD for lightning-fast deployments. |
 
 ---
@@ -71,34 +74,35 @@ Want to run this project locally? Follow these simple steps.
 Make sure you have the following installed on your machine:
 * [Node.js](https://nodejs.org/en/) (v18.x or higher)
 * [npm](https://www.npmjs.com/) or [yarn](https://yarnpkg.com/)
+* [MongoDB Atlas Account](https://www.mongodb.com/cloud/atlas) (free tier works great!)
 
-### Installation
+### Quick Start
 
 1.  **Clone the repository:**
     ```bash
-    git clone [https://github.com/janreidev-web/expensegenie.git](https://github.com/janreidev-web/expensegenie.git)
-    ```
-
-2.  **Navigate to the project directory:**
-    ```bash
+    git clone https://github.com/janreidev-web/expensegenie.git
     cd expensegenie
     ```
 
-3.  **Install the dependencies:**
+2.  **Install dependencies:**
     ```bash
     npm install
-    # or
-    yarn install
     ```
+
+3.  **Set up environment variables:**
+    ```bash
+    cp .env.example .env
+    ```
+    Then edit `.env` with your MongoDB URI and JWT secret.
 
 4.  **Run the development server:**
     ```bash
     npm run dev
-    # or
-    yarn dev
     ```
 
 Open [http://localhost:3000](http://localhost:3000) in your browser to see the result.
+
+📖 **For detailed setup instructions, see [SETUP.md](./SETUP.md)**
 
 ---
 

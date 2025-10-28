@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { toast } from 'react-hot-toast';
 import { ClipLoader } from "react-spinners";
+import { SparklesIcon } from '@heroicons/react/24/solid';
 
 // MODIFIED: Props now include onClose for closing the modal
 const AddExpenseForm = ({ onClose, onExpenseAdded }) => {
@@ -11,10 +12,46 @@ const AddExpenseForm = ({ onClose, onExpenseAdded }) => {
     date: new Date().toISOString().split('T')[0], // Default to today
   });
   const [isLoading, setIsLoading] = useState(false);
+  const [isCategorizing, setIsCategorizing] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleAICategorize = async () => {
+    if (!formData.description || formData.description.trim() === '') {
+      toast.error("Please enter a description first!");
+      return;
+    }
+
+    setIsCategorizing(true);
+    const token = localStorage.getItem("token");
+
+    try {
+      const res = await fetch("/api/ai/categorize", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ description: formData.description }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok && data.category) {
+        setFormData((prev) => ({ ...prev, category: data.category }));
+        toast.success(`AI suggests: ${data.category}! 🤖`);
+      } else {
+        toast.error("Could not categorize. Please select manually.");
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("AI categorization failed.");
+    } finally {
+      setIsCategorizing(false);
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -64,6 +101,27 @@ const AddExpenseForm = ({ onClose, onExpenseAdded }) => {
         >
           <h2 className="text-2xl font-semibold text-slate-800 mb-4">Add New Expense</h2>
 
+          <input type="number" name="amount" placeholder="Amount" value={formData.amount} onChange={handleChange} required min="0.01" step="0.01" className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"/>
+
+          <div className="space-y-2">
+            <input type="text" name="description" placeholder="Description (e.g., 'Lunch at Jollibee')" value={formData.description} onChange={handleChange} className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"/>
+            <button 
+              type="button"
+              onClick={handleAICategorize}
+              disabled={isCategorizing || !formData.description}
+              className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-semibold py-2 px-4 rounded-md hover:from-purple-600 hover:to-indigo-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isCategorizing ? (
+                <ClipLoader size={16} color="#fff" />
+              ) : (
+                <>
+                  <SparklesIcon className="h-5 w-5" />
+                  <span>AI Auto-Categorize</span>
+                </>
+              )}
+            </button>
+          </div>
+
           {/* Form fields are the same, but with better styling */}
           <select name="category" value={formData.category} onChange={handleChange} required className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500">
              <option value="" disabled>Select category</option>
@@ -71,10 +129,6 @@ const AddExpenseForm = ({ onClose, onExpenseAdded }) => {
              <option>Housing</option><option>Personal Needs</option><option>Healthcare</option>
              <option>Leisure</option><option>Bills</option><option>Other</option>
           </select>
-
-          <input type="number" name="amount" placeholder="Amount" value={formData.amount} onChange={handleChange} required min="0.01" step="0.01" className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"/>
-
-          <input type="text" name="description" placeholder="Description (optional)" value={formData.description} onChange={handleChange} className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"/>
 
           <input type="date" name="date" value={formData.date} onChange={handleChange} required className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"/>
           
